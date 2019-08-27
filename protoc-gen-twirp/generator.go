@@ -29,9 +29,9 @@ import (
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/pkg/errors"
-	"github.com/twitchtv/twirp/internal/gen"
-	"github.com/twitchtv/twirp/internal/gen/stringutils"
-	"github.com/twitchtv/twirp/internal/gen/typemap"
+	"github.com/h2oai/twirp/internal/gen"
+	"github.com/h2oai/twirp/internal/gen/stringutils"
+	"github.com/h2oai/twirp/internal/gen/typemap"
 )
 
 type twirp struct {

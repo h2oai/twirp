@@ -32,7 +32,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 
 	"github.com/twitchtv/twirp"
-	"github.com/twitchtv/twirp/internal/descriptors"
+	"github.com/h2oai/twirp/internal/descriptors"
 )
 
 func TestServeJSON(t *testing.T) {
