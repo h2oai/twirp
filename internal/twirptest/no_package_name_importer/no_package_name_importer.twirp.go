@@ -22,7 +22,7 @@ import proto "github.com/golang/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
-import no_package_name "github.com/twitchtv/twirp/internal/twirptest/no_package_name"
+import no_package_name "github.com/h2oai/twirp/internal/twirptest/no_package_name"
 
 // Imports only used by utility functions:
 import io "io"
