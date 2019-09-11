@@ -25,9 +25,9 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/twitchtv/twirp/internal/gen"
-	"github.com/twitchtv/twirp/internal/gen/stringutils"
-	"github.com/twitchtv/twirp/internal/gen/typemap"
+	"github.com/h2oai/twirp/internal/gen"
+	"github.com/h2oai/twirp/internal/gen/stringutils"
+	"github.com/h2oai/twirp/internal/gen/typemap"
 )
 
 func main() {
@@ -128,29 +128,46 @@ func (g *generator) generateProtobufClient(file *descriptor.FileDescriptorProto,
 		g.P(`    """`)
 		g.P()
 	}
-	g.P(`    def __init__(self, server_address):`)
+	g.P(`    DEFAULT_HEADERS = {"Content-Type": "application/protobuf"}`)
+	g.P()
+	g.P(`    def __init__(self, server_address, headers=None, request_hook=None, response_hook=None):`)
 	g.P(`        """Creates a new client for the `, serviceName(service), ` service.`)
 	g.P()
 	g.P(`        Args:`)
 	g.P(`            server_address: The address of the server to send requests to, in`)
 	g.P(`                the full protocol://host:port form.`)
+	g.P(`            headers: Dict with required headers. Defaults to {"Content-Type": "application/protobuf"}`)
+	g.P(`            request_hook: function(url: str, body: bytes, headers: dict) -> None which is called before the request is create. Useful for example to execute preflight checks, like refresh auth token if expired. Defaults to None`)
+	g.P(`            response_hook: function(resp: HTTPResponse) -> None which is called when response is obtained from server. Useful for example to read headers. Defaults to None`)
 	g.P(`        """`)
+	g.P(`        if headers is None:`)
+	g.P(`            headers = `, clientName(service), `.DEFAULT_HEADERS`)
 	g.P(`        if sys.version_info[0] > 2:`)
 	g.P(`            self.__target = server_address`)
 	g.P(`        else:`)
 	g.P(`            self.__target = server_address.encode('ascii')`)
 	g.P(`        self.__service_name = `, strconv.Quote(fullServiceName(file, service)))
+	g.P(`        self.__request_hook = request_hook`)
+	g.P(`        self.__response_hook = response_hook`)
+	g.P(`        self.__headers = headers`)
 	g.P()
 	g.P(`    def __make_request(self, body, full_method):`)
+	g.P(`        url = self.__target + "/twirp" + full_method`)
+	g.P(`        if self.__request_hook is not None:`)
+	g.P(`            self.__request_hook(url, body, self.__headers)`)
+	g.P(``)
 	g.P(`        req = Request(`)
-	g.P(`            url=self.__target + "/twirp" + full_method,`)
+	g.P(`            url=url,`)
 	g.P(`            data=body,`)
-	g.P(`            headers={"Content-Type": "application/protobuf"},`)
+	g.P(`            headers=self.__headers,`)
 	g.P(`        )`)
 	g.P(`        try:`)
 	g.P(`            resp = urlopen(req)`)
 	g.P(`        except HTTPError as err:`)
 	g.P(`            raise TwirpException.from_http_err(err)`)
+	g.P(``)
+	g.P(`        if self.__response_hook is not None:`)
+	g.P(`            self.__response_hook(resp)`)
 	g.P(``)
 	g.P(`        return resp.read()`)
 	g.P()
