@@ -810,7 +810,7 @@ func (t *twirp) generateSignature(method *descriptor.MethodDescriptorProto) stri
 	methName := methodName(method)
 	inputType := t.goTypeName(method.GetInputType())
 	outputType := t.goTypeName(method.GetOutputType())
-	return fmt.Sprintf(`	%s(%s.Context, *%s) (*%s, error)`, methName, t.pkgs["context"], inputType, outputType)
+	return fmt.Sprintf(`	%s(%s.Context, *%s, %s.ResponseWriter, *%s.Request) (*%s, error)`, methName, t.pkgs["context"], inputType, t.pkgs["http"], t.pkgs["http"], outputType)
 }
 
 // valid names: 'JSON', 'Protobuf'
@@ -854,7 +854,7 @@ func (t *twirp) generateClient(name string, file *descriptor.FileDescriptorProto
 		inputType := t.goTypeName(method.GetInputType())
 		outputType := t.goTypeName(method.GetOutputType())
 
-		t.P(`func (c *`, structName, `) `, methName, `(ctx `, t.pkgs["context"], `.Context, in *`, inputType, `) (*`, outputType, `, error) {`)
+		t.P(`func (c *`, structName, `) `, methName, `(ctx `, t.pkgs["context"], `.Context, in *`, inputType, `, resp `, t.pkgs["http"], `.ResponseWriter, rawReq *`, t.pkgs["http"],`.Request) (*`, outputType, `, error) {`)
 		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithPackageName(ctx, "`, pkgName, `")`)
 		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithServiceName(ctx, "`, servName, `")`)
 		t.P(`  ctx = `, t.pkgs["ctxsetters"], `.WithMethodName(ctx, "`, methName, `")`)
@@ -1026,7 +1026,7 @@ func (t *twirp) generateServerJSONMethod(service *descriptor.ServiceDescriptorPr
 	t.P(`        panic(r)`)
 	t.P(`      }`)
 	t.P(`    }()`)
-	t.P(`    respContent, err = s.`, servName, `.`, methName, `(ctx, reqContent)`)
+	t.P(`    respContent, err = s.`, servName, `.`, methName, `(ctx, reqContent, resp, req)`)
 	t.P(`  }()`)
 	t.P()
 	t.P(`  if err != nil {`)
@@ -1099,7 +1099,7 @@ func (t *twirp) generateServerProtobufMethod(service *descriptor.ServiceDescript
 	t.P(`        panic(r)`)
 	t.P(`      }`)
 	t.P(`    }()`)
-	t.P(`    respContent, err = s.`, servName, `.`, methName, `(ctx, reqContent)`)
+	t.P(`    respContent, err = s.`, servName, `.`, methName, `(ctx, reqContent, resp, req)`)
 	t.P(`  }()`)
 	t.P()
 	t.P(`  if err != nil {`)
